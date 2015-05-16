@@ -30,3 +30,10 @@ div.socialbar {
   margin:auto;
   text-align: center;
 }
+
+div.checkout {
+  width: 500px;
+  margin:auto;
+  text-align: center;
+  padding-top: 140px;
+}

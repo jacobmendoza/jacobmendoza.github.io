@@ -1,0 +1,53 @@
+body
+{
+  color:white;
+  background-color: #84BFF0;
+  font-family: 'Open Sans', sans-serif;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 30px;
+  font-weight: 700;
+  padding:0;
+  margin:0;
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: 700;
+  padding:0;
+  margin:0;
+}
+
+i {
+  font-size: 30px;
+}
+
+a {
+  text-align: center;
+  text-transform: uppercase;
+  padding: 20px 40px;
+  color:white;
+  letter-spacing: 2px;
+  text-decoration: none;
+}
+
+.left-container {
+  width: 600px;
+  height: 400px;
+  color:white;
+  float:left;
+}
+
+.right-container {
+  float:right;  
+}
+
+a.repo {background-color: #BBB; }
+
+a.download {background-color: #FC8C5E;}
+
+.links-container { margin-top:60px; }
+
+.features-container { margin-top: 25px; }
