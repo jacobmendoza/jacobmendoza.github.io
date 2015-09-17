@@ -37,3 +37,8 @@ div.checkout {
   text-align: center;
   padding-top: 140px;
 }
+
+span.old {
+  color: #CCC;
+  text-decoration: line-through;
+}
