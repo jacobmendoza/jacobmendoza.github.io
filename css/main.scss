@@ -3,12 +3,10 @@
 ---
 @charset "utf-8";
 
-
-
 // Our variables
-$base-font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+$base-font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 $base-font-size:   16px;
-$base-font-weight: 400;
+$base-font-weight: 300;
 $small-font-size:  $base-font-size * 0.875;
 $base-line-height: 1.5;
 
@@ -23,12 +21,128 @@ $grey-color-light: lighten($grey-color, 40%);
 $grey-color-dark:  darken($grey-color, 25%);
 
 // Width of the content area
-$content-width:    800px;
+$content-width:    700px;
 
 $on-palm:          600px;
 $on-laptop:        800px;
 
+a {
+  color: #2391D3 !important;
+}
 
+.page-heading {
+  font-size: 30px !important;
+}
+
+.site-header {
+  border-top: 0px !important;
+  border-bottom: 0px !important;
+}
+
+.site-footer {
+  text-align: center;
+  a { color:#CCC !important; }
+}
+
+#landingContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -150px;
+  margin-left: -250px;
+  width: 500px;
+  height: 500px;
+  text-align: center;
+
+  #rspec-tree-runner {
+    font-size: 13px;
+    margin-top: 100px;
+  }
+
+  #menu {
+    margin-top: 30px;
+    font-size: 14px;
+    text-transform: uppercase;
+
+    a {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+  }
+
+  .old {
+    color: #ccc;
+    text-decoration: line-through;
+  }
+}
+
+h1.post-title {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 2rem;
+  letter-spacing: -1px;
+  color: #222;
+  font-weight: 700;
+}
+
+.post-meta {
+  font-size: 16px;
+  text-transform: uppercase;
+  font-weight: lighter;
+}
+
+blockquote {
+  border-left: 4px solid #e8e8e8;
+  padding-left: 15px;
+  font-size: 16px !important;
+  letter-spacing: -1px;
+  font-style: normal !important;
+}
+
+.categories {
+  color: #aaa;
+  font-size: 11px;
+  text-transform: uppercase;
+  text-align: center;
+  display: block;
+  margin-bottom: 30px;
+  letter-spacing: 1px;
+
+  .category {
+    padding: 3px 6px;
+    border-radius: 3px;
+    background: #ededed;
+    color: #666;
+    letter-spacing: 1px;
+    margin: 0 0.5rem;
+  }
+}
+
+.post-header {
+  text-align: center;
+}
+
+.wrapper {
+  font-size: 12px;
+}
+
+ul.post-list {
+  h2 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 1rem;
+    letter-spacing: -1px;
+    color: #000;
+    font-weight: 700;
+  }
+
+  h2 a {
+    color: #000 !important;
+  }
+}
+
+.post-content {
+  font-size: 16px;
+  h1 { font-size: 30px; }
+}
 
 // Use media queries like this:
 // @include media-query($on-palm) {
@@ -42,8 +156,6 @@ $on-laptop:        800px;
         @content;
     }
 }
-
-
 
 // Import partials from `sass_dir` (defaults to `_sass`)
 @import
