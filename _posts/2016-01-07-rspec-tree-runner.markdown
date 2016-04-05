@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "rspec-tree-runner"
-date:   2016-03-11 17:40:57 +0000
+date:   2016-01-07 17:40:57 +0000
 categories: GITHUB-ATOM COFFEESCRIPT RSPEC RUBY RAILS
 ---
 
