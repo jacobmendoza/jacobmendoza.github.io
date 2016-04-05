@@ -43,7 +43,7 @@ several strategies to perform that transformation.
 
 Depending on the complexity of the mapping, solutions as <a href="http://automapper.org/" target='blank'>AutoMapper</a>,
 <a href="http://dozer.sourceforge.net/" target='blank'>Dozer</a>, etc. can work pretty well.
-If the actual logic that builds the object can be complex, creating a factory can be a better way of expressing the
+If the actual logic that builds the object is not straightforward, creating a factory can be a better way of expressing the
 transformation. The factory can orchestrate the validation and actual creation of the new object. The result
 is a different object derived from the input and extended with more information and behavior. **The feature only
 accepts that resulting object**.
