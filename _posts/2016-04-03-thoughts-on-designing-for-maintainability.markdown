@@ -26,12 +26,12 @@ The gist of it: You want to have your business domain completely isolated from i
 user interface. That isolation is accomplished with ports (the interface that establishes the contract for external communication)
 and the adapters (converts the external message into something that can be used into the application).
 
-You can read also <a href="http://blog.ploeh.dk/2013/12/03/layers-onions-ports-adapters-its-all-the-same/" target='blank'>Mark Seemann's approach</a> to the topic, where he calls out that this is not so different to a layered architecture following properly
+You can read also <a href="http://blog.ploeh.dk/2013/12/03/layers-onions-ports-adapters-its-all-the-same/" target='blank'>Mark Seemann's approach</a> to the topic, where he affirms that this is not so different to a layered architecture correctly following
 the <a href="https://en.wikipedia.org/wiki/Dependency_inversion_principle" target='blank'>Dependency Inversion Principle</a>.
 
 # Isolating the feature
 
-The initial step is isolating completely the input/s that will be used to fulfill the operation.
+The initial step is completely isolating the input/s to be used to fulfill the operation.
 Typically, that means making sure that we treat the request object that we receive as a DTO,
 with data and no behavior and also that we transform it into something different before it goes into
 the logic. <a href="http://blog.ploeh.dk/2011/05/31/AttheBoundaries,ApplicationsareNotObject-Oriented/" target='blank'>At the boundaries is ok if we do not have proper objects</a>. Same principle can be applied if we need to communicate
@@ -53,7 +53,7 @@ accepts that resulting object**.
 # Commands and command handlers
 
 We express a lot of our features with commands a command handlers, but don't assume any <a href="http://martinfowler.com/bliki/CQRS.html" target='blank'>fancy</a> architecture
-behind!. Most of our operations run synchronously. Commands and command handlers allow us to separate what we
+behind it!. Most of our operations run synchronously. Commands and command handlers allow us to separate what we
 are going to do from how we will do it.
 
 That being said, we don't know if in the future some of this operations will go to a bus running asynchronously.
@@ -61,7 +61,7 @@ This could be an arduous matter but we can design our code to exhibit a few desi
 transition easier. Only a few thoughts:
 
 Commands by definition should be immutable, we cannot change their internal state once created
-(they do not need to change during their lifetime). That will allow us to treat them as value types, whose
+(they do not need to change during their lifetime). That will allow us to treat them as value types whose
 identity is derived from the value of their properties.
 
 The handler
@@ -70,8 +70,8 @@ several times but the outcome should not change after the initial application. T
 we cannot guarantee that the command will be executed only once over the domain (failure conditions on your code or the network).
 There are several approaches to this problem.
 
-Something easier is ensure that the command will be serializable. If at some point in the future we need to transfer
-that command to an external system (as the bus that we mentioned) the data will be translated into something else.
+Something easier is to ensure that the command will be serializable. If at some point in the future we need to transfer
+that command to an external system (such as the bus that we mentioned) the data will be translated into something else.
 Do not put anything inside that you cannot serialize.
 
 # Exceptions
@@ -83,8 +83,8 @@ that we do.
 If you are not going to do anything specific with the exception, it only makes sense catch it at the boundaries of the
 process/feature and control what data structure you will use to communicate them. It is important to remember that logging is a <a href="https://en.wikipedia.org/wiki/Cross-cutting_concern" target='blank'>cross-cutting concern</a>, you shouldn't be seeing
 much code about that in your business logic.
-Accordingly, makes sense to have a single piece of logic that handles the conversion from the exception to the data
-structure that will leave your process. If you are working with HTTP as we do, make sure of provide meaningful status codes.
+Accordingly, it makes sense to have a single piece of logic that handles the conversion from the exception to the data
+structure that will leave your process. If you are working with HTTP as we do, make sure meaningful status codes are provided.
 A few examples:
 
 - 400 if the exception was caused by bad inputs (include the input!).
@@ -95,12 +95,12 @@ If you are going to re-throw a new exception after catching one (because you wan
 make sure that you find some mechanism to respect the context. For instance, in .NET you will find the InnerException
 property, and Throwable.getCause() for Java.
 
-Unless you have a good reason, it should only be one place for logging. Is easy to find codebases where writing the exception
+Unless you have a good reason, it should only be one place for logging. It is easy to find codebases where writing the exception
 to the log happens in several places leading to duplications. It really makes harder to read the logs.
 
 # Code Reviews
 
-Keep the code review thorough. Sometimes achieve "loose coupling" requires a high level of attention to detail that can be
+Keep the code review thorough. Sometimes achieving "loose coupling" requires a high level of attention to detail that can be
 tricky when you are close to your deadline. **Good, honest and sincere feedback from your peers is a rare gift**. Use it.
 
 I know that 'code coverage' is controversial metric, more meaningful to find untested parts of the codebase than as a numeric
