@@ -1,0 +1,18 @@
+---
+layout: post
+title:  "atom-ava"
+date:   2016-07-07 17:40:57 +0000
+categories: GITHUB-ATOM ES6 BABEL AVA
+---
+
+<a href="https://twitter.com/ava__js/status/735538464263950336" target='blank'>We</a> have released an integrated test runner for <a href="https://github.com/avajs/ava" target='blank'>AVA</a> that works with <a href="https://atom.io/" target='blank'>Atom</a>, the GitHub editor. AVA is a very cool testing framework, maintained by <a href="https://github.com/avajs/ava#team" target='blank'>really talented people</a>, that takes advantage of the async nature of Node to run tests in parallel.
+
+![Image alt]({{ site.baseurl }}/assets/atom-ava.png "atom-ava")
+
+As all the Atom packages, this is effectively a Node application. Atom supports by default the <a href="https://github.com/avajs/atom-ava/blob/master/lib/index.js#L1" target='blank'>transpilation</a> with Babel, so we have used ES6 to write everything.
+
+The communication between AVA and the package is implemented with <a href="https://testanything.org/" target='blank'>TAP</a> (Test anything protocol) using <a href="https://github.com/tapjs/tap-parser" target='blank'>this TAP parser</a>, that worked very well.
+At this stage, we don't use any framework or library to render the results, just DOM manipulation.
+
+- Repository: <a href="https://github.com/avajs/atom-ava" target='blank'>https://github.com/avajs/atom-ava</a>
+- Atom package page: <a href="https://atom.io/packages/ava" target='blank'>https://atom.io/packages/ava</a>
