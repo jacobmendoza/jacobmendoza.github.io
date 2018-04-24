@@ -2,7 +2,7 @@
 layout: post
 title:  "atom-ava"
 date:   2016-07-07 17:40:57 +0000
-categories: GITHUB-ATOM ES6 BABEL AVA
+categories: ARTICLE GITHUB-ATOM ES6 BABEL AVA
 ---
 
 <a href="https://twitter.com/ava__js/status/735538464263950336" target='blank'>We</a> have released an integrated test runner for <a href="https://github.com/avajs/ava" target='blank'>AVA</a> that works with <a href="https://atom.io/" target='blank'>Atom</a>, the GitHub editor. AVA is a very cool testing framework, maintained by <a href="https://github.com/avajs/ava#team" target='blank'>really talented people</a>, that takes advantage of the async nature of Node to run tests in parallel.

@@ -126,6 +126,12 @@ blockquote {
   font-size: 12px;
 }
 
+.post-content {
+  font-size: 16px;
+  h1 { font-size: 30px; }
+  h2 { font-size: 20px !important; }
+}
+
 ul.post-list {
   h2 {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -138,11 +144,6 @@ ul.post-list {
   h2 a {
     color: #000 !important;
   }
-}
-
-.post-content {
-  font-size: 16px;
-  h1 { font-size: 30px; }
 }
 
 // Use media queries like this:

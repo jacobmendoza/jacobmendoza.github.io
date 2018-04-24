@@ -2,7 +2,7 @@
 layout: post
 title:  "Thoughts on designing for maintainability"
 date:   2016-04-03 20:40:57 +0000
-categories: OOP DESIGN
+categories: ARTICLE OOP DESIGN
 ---
 
 # Introduction

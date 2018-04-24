@@ -2,7 +2,7 @@
 layout: post
 title:  "My approach to refactoring and legacy code"
 date:   2016-09-07 17:40:57 +0000
-categories: REFACTORING QUALITY SOLID
+categories: ARTICLE REFACTORING QUALITY SOLID
 ---
 
 What I usually pursue is the minimization of unintended change and optimization for readability, most of what we do with code is reading. The refactoring is guided towards patterns and SOLID.
@@ -59,6 +59,6 @@ be the internal state of an object. If that is the case, move that logic to a me
 
 **Primitive obsession** (Fowler): Using primitive data to express domain concepts. Inspect the parameters of methods and return types. More than two parameters are probably expressing something that could be expressed as an object. That object should reflect a domain concept and has to be defined with the name that a domain expert would use.
 
-**Command and Query separation**&nbsp;(Meyer): A method should modify the system writing a new value (side-effect) or query data that is returned to the consumer, but never both. 
+**Command and Query separation**&nbsp;(Meyer): A method should modify the system writing a new value (side-effect) or query data that is returned to the consumer, but never both.
 
 **Enforce immutability**: Enforce as much as possible objects that cannot change after being created. Prevents from modifications by mistake.
