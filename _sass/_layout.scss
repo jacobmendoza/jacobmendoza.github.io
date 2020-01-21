@@ -191,7 +191,7 @@
 
 .post-link {
     display: block;
-    font-size: 24px;
+    font-size: 1.9rem;
 }
 
 
@@ -204,7 +204,6 @@
 }
 
 .post-title {
-    font-size: 42px;
     letter-spacing: -1px;
     line-height: 1;
 
@@ -217,10 +216,10 @@
     margin-bottom: $spacing-unit;
 
     h2 {
-        font-size: 32px;
+        font-size: 2rem;
 
         @include media-query($on-laptop) {
-            font-size: 28px;
+            font-size: 2rem;
         }
     }
 
