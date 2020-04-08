@@ -26,6 +26,12 @@ $content-width:    700px;
 $on-palm:          600px;
 $on-laptop:        800px;
 
+body {
+ text-rendering: optimizeLegibility;
+ -webkit-font-smoothing: antialiased;
+ -moz-osx-font-smoothing: grayscale;
+}
+
 a {
   color: #2391D3 !important;
 }
@@ -44,27 +50,39 @@ a {
   a { color:#CCC !important; }
 }
 
+@keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
 #landingContainer {
-  padding: 3rem;
+  padding: 5rem 8rem;
 
   h1 {
     font-size: 3.5rem;
     font-weight: bold;
     letter-spacing: -2px;
+    line-height: 4rem;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     margin: 0;
   }
 
   h2 {
     font-size: 1.1rem;
-    font-weight: normal;
-    letter-spacing: -1px;
+    font-weight: bold;
+    letter-spacing: -0.5px;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     margin: 0;
   }
 
   #menu {
     margin-top: 30px;
+
+    -webkit-animation: fadein 2s; /* Safari, Chrome and Opera > 12.1 */
+    -moz-animation: fadein 2s; /* Firefox < 16 */
+    -ms-animation: fadein 2s; /* Internet Explorer */
+    -o-animation: fadein 2s; /* Opera < 12.1 */
+    animation: fadein 2s;
 
     a {
       font-size: 3.5rem;
@@ -81,6 +99,10 @@ a {
     a.blog {
       color: #999 !important;
     }
+
+    a:hover {
+      color: #333 !important;
+    }
   }
 
   .old {
@@ -91,8 +113,8 @@ a {
 
 h1.post-title {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 2.5rem;
-  letter-spacing: -1px;
+  font-size: 2.8rem;
+  letter-spacing: -2px;
   color: #222;
   font-weight: 700;
 }
