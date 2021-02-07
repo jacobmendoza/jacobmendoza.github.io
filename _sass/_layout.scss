@@ -216,6 +216,11 @@
 .post-content {
     margin-bottom: $spacing-unit;
 
+    p {
+      margin: 2rem 0;
+      color: #4a5568;
+    }
+
     h2 {
         font-size: 2rem;
 

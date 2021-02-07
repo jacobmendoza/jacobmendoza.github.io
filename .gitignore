@@ -4,4 +4,6 @@ _site
 
 rspec-tree-runner/.DS_Store
 
+.jekyll-cache/
+
 .DS_Store

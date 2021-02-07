@@ -1,0 +1,402 @@
+---
+layout: post
+title:  "Single responsibility principle, cohession, models and environments"
+date:   2020-02-01 17:40:57 +0000
+categories: ARTICLE SRP QUALITY
+---
+> Notes originally written circa 2016. Updated and added some Clojure examples.
+
+Most engineers I know develop strong intuitions against long portions of code or modules doing “too much”. Naturally, thinking in pieces that on the other hand do just one thing, sounds appealing. Everyone I know has struggled with things they could not understand well enough because it did not fit in their heads. As a rule of thumb, it is frequently said that if you need to use the word AND when describing your class, function, or module, it is most surely breaking the SRP, and therefore it needs to be refactored.
+
+The frameworks we use, libraries we call, seem to be filled with small functions where just one thing happens: parsing a comma-separated string, making a network request, etc. But sometimes, junior developers or maybe people of all experience levels but approaching the principle for the first time, struggle to see the meaning of the principle in the context of the code they write every day.
+
+We spend most of our time composing behavior, where naturally, more than one thing is happening. How can a function do one thing, when for example, we are coordinating a process with several steps?. If a function is doing several things, why is it better after extracting these subparts to another function?.
+
+# Counting reasons to change
+
+I do prefer counting reasons why the subject could change to using the description technique explained before. I learned
+this thought experiment from my lead engineer in Dell, from which I learned a ton.
+
+Let’s assume we have a program that aggregates different options to travel between point A and B, being the price of the ticket the unique metric for the sorting. At this stage, the system only contemplates trips by plane or train.
+
+This theoretical piece of code performs a few tasks that will be familiar to most of us. Lots of features today involve interacting with an external system, mapping the response, doing some checks on information retrieved from different sources, and performing a final side-effect.
+
+```
+export const buildTravelOptionsForCustomer = async (request) => {
+  logRequest(request);
+
+  const travelOptionsByPlane = await http.get(url, request);
+
+  const travelOptionsByTrain =
+      await provider.query(connection, "SELECT * FROM trains WHERE from = ? AND to = ?", request);
+
+  if (travelOptionsByPlane.ok || travelOptionsByTrain.length > 0) {
+    const allOptions = travelOptionsByPlane.options.concat(travelOptionsByTrain);
+
+    return {
+      from: request.from,
+      to: request.to,
+      options: allOptions.sortBy((a, b) => a.price < b.price);
+    }
+  } else {
+     Throw new NoOptionsError();
+  }
+}
+```
+
+This code logs the request in our logging system. Calls an external system via HTTP to get the options to travel between points A and B by plane. Then we retrieve some information from the database that, jointly with the response obtained from the external system produces a final result if some conditions are met.
+
+A good heuristic that helps us to know if we need to refactor (improve the design without altering the outcome) this code is counting the number of reasons the code has to change until we just have one. To put it differently, the function needs to know about the internal implementation details of just one thing. The level where we always focus on these examples is the function `buildTravelOptionsForCustomer`, which is not to say that similar reasoning could not be applied to others.
+
+We will need to change this code if:
+
+- The plane API is exposed under a different transport technology in the future.
+- The format exposed by the API changes. They could change the name of the fields or their types.
+- The database, or the structure of its tables changes.
+- The algorithm to decide how the list needs to be sorted evolves into something more complex. Today we sort by price. In the future, we could use a recommendation system that sorts considering also past choices of our users, for example.
+
+To make this function unaware of part of the details previously discussed, one initial step could be:
+
+```
+  const getPlaneOptions = async (request) => {
+  const travelOptionsByPlane = await http.get(url, request);
+
+  return {
+    success: travelOptionsByPlane.ok,
+    options: travelOptionsByPlane.list.map(l => {
+      return {
+        from: l.src,
+        to: l.dest,
+        carrier: l.carrier,
+        price: convertToUsersCurrency(l.price, request)
+      };
+    })
+  };
+}
+
+const getTrainOptions = async (request) => {
+  const travelOptionsByTrain =
+    await provider.query(connection, "SELECT * FROM train WHERE from = ? AND to = ?", request);
+
+    return {
+      options: travelOptionsByTrain.map(o => {
+        return { from: o.from, to: o.to, price: o.price, company: o.company }
+      })
+    };
+}
+
+export const buildTravelOptionsForCustomer = async (request) => {
+  logRequest(request);
+
+  const planeOptions = await getPlaneOptions(request);
+
+  const trainOptions = await getTrainOptions(request);
+
+  if (planeOptions.length > 0 || trainOptions.length > 0) {
+    const allOptions = planeOptions.concat(trainOptions);
+
+    return {
+      from: request.from,
+      to: request.to,
+      options: allOptions.sortBy((a, b) => a.price < b.price)
+    }
+  } else {
+    throw new NoOptionsError();
+  }
+}
+```
+
+As a first step, we have extracted two new methods (getPlaneOptions and getTrainOptions) and although it could seem that
+we have merely moved the problem somewhere else, there are some changes already that are worth discussing.
+
+Our function was initially alone, now it has two new functions to collaborate. We have created a contract between our original function and the two new methods. In a strongly typed language, the compiler would enforce this contract. As long as they adhere to it, our original function can keep fulfilling its goal without knowing directly how the options are retrieved. Now it knows through the data structure returned and the communication flows through first-class citizen components of the language: functions, parameters, and data-structures. In this case, as this function covers our interaction with an external system, it is also an architectural boundary. Provides isolation. The only thing that our function sees is the data-structure the other two return.
+
+![Image alt]({{ site.baseurl }}/assets/srp-1.52.32.png "image title")
+
+From the point of view of `buildTravelOptionsForCustomer` (and it also happens in the others), the code is still organized
+in a way in which it could be still trying to solve the same problem for the user (obtain a meaningful list of options to travel) and still need to change to adapt to secondary concerns.
+
+What if we want to extend our service to offer also trips by boat?. We want also to not be aware of the number of providers that feed the information at this level of abstraction. This can be achieved by making the code a bit more general.
+
+For example, providers could now be a data structure that enables treating them in a generalized way. We have also created an environment object
+that can be used to easily call the providers so they can get the database connection or the url, depending on what they need.
+
+```
+const getPlaneOptions = (environment, request) => {
+  const { externalSystemUrl } = environment;
+
+  ...
+}
+
+const getTrainOptions = (environment, request) => {
+  const { databaseConnection } = environment;
+
+  ...
+}
+
+const providers = {
+  'plane': getPlaneOptions,
+  'train': getTrainOptions
+}
+
+const getTravelOptions = (environment, request) => {
+  const promises = Object.values(providers).map(p => p(environment, request));
+
+  return Promise.all(promises).then(partialResults => {
+    const results = partialResults.flat();
+
+    if (results.length > 0) {
+      return results;
+    } else {
+      throw new NoOptionsError();
+    }
+  });
+}
+
+export const buildTravelOptionsForCustomer = (request) => {
+  logRequest(request);
+
+  const environment = { databaseConnection: connection, externalSystemUrl: url };
+
+  const allOptions = await getTravelOptions(environment, request);
+
+  return {
+    source: request.origin,
+    destination: request.destination,
+    options: allOptions.sortBy((a, b) => a.price < b.price)
+  }
+}
+```
+Our main character `buildTravelOptionsForCustomer` is now doing a bit less. It is not fully aware of the internal details
+that describe how different travel options are retrieved, and a bit more protected from changes in the schemas of these
+dependencies. Still, it knows about the connection and the url of the external system, infrastructural concerns.
+
+# The model and the environment
+
+Software must change with the environment or die, there is no middle ground. Change is a source of errors and mistakes, but almost no software can remain static to what happens around it, we need to be as prepared as we can.
+
+I think about features as isolated silos. To solve a problem for the user, we typically build a model:
+a conceptual representation of the problem and its solution. The model is a collection of functions and data that connects via an interface with the environment, which is everything else: other external software, software components within my system, or delivery mechanisms. The latter is also a specially interesting case: Other systems, databases, or even the UI. **A clear separation between the environment and the model we create helps to simulate stability in a world where clearly isn’t any**.
+
+When the environment leaks into the application code we find important problems shifting from user input to a computed one, or expose behavior via our own API. It is also harder to test effectively. **It is hard to over-emphasize how much state is a fundamental cause of complexity, and how deep its
+impact is on testing**. State affects everything. Increasing the surface of code to test means also difficulties describing the state associated. It is also tremendously difficult to enumerate all the states a system can be, and therefore reason about all the expected outcomes in those cases.
+
+Our model can be architected in a way in which we try to keep stateful components in the environment, so the model itself remains pure. Referring to our previous example, the database and the external service are clearly stateful.
+
+![Image alt]({{ site.baseurl }}/assets/srp-2.57.39.png "image title")
+
+Interactions between the environment and the model must be of course, explicit. In our example, there are elements that are fundamental dependencies that now remain subtly hidden. Without the database connection and the url pointing to the external system, the feature cannot work. And we know about them because we see the internal implementation of the feature, but it is not possible to know from the outside, via the public API.
+
+If we keep it like this, we are being dishonest about the level of complexity. Looks simple from the point of view of what can be seen from the outside, but it turns out to be complex. And what is worse, we can only realize about it in runtime.
+When a dependency is compulsory, we must make callers aware of its existence.
+In object-oriented languages compulsory dependencies are provided via the constructor:
+
+```
+class TravelOptions {
+  constructor(databaseConnection, url) {
+    _connection = databaseConnection;
+    _serviceUrl = url;
+  }
+
+  buildListingForCustomer(request) {
+    ...
+  }
+}
+```
+
+In a functional one, the environment can be provided as an argument:
+
+```
+(defn build-listing-for-customer
+    [{:environment/keys [connection service-url]} request]
+  …)
+```
+
+It is important to underline again how the **dependencies are given to the subject through first-class constructs of the language: the constructor, or parameters in a function**. Not via importing it and making reference to the imported item later, for example. We want to make impossible to use the code without providing what it needs and give a fair representation to consumers about the real complexity behind the API.
+Also, please note how even though one example is in C# and the other in Clojure (OOP vs FP) both can feature similar properties. Instantiating a class that does not have any state and call the method `buildListingForCustomer` is equivalent to call the Clojure function with the environment partially applied.  
+
+Applying this in our example:
+
+```
+export const buildTravelOptionsForCustomer = async (environment, request) => {
+  logRequest(request);
+
+  const allOptions = await getTravelOptions(environment, request);
+
+  return {
+    source: request.origin,
+    destination: request.destination,
+    options: options.sort((a, b) => a.price < b.price)
+  }
+}
+```
+
+The environment is now a required parameter of our function. It is not hidden anymore, you know it is needed inspecting the
+public parameters of the function. Someone needs to pass it to the function so it can properly work.
+
+The layer in which `buildTravelOptionsForCustomer` sits is especially interesting. It represents the core of a feature and almost everything users
+care about. Of course, this information must be presented to them somehow, but that belongs somewhere else. It seems like a good idea to have a good test coverage at this level.
+
+Unit tests run fast and focus on narrower parts of the system to give strong indications about where problems exist. Despite the problems to agree on a definition of what a unit is, I think we all can agree on some essential traits: In these tests, there is no trace of state or stateful components. This means, no database altered, no file system being touched, no configuration files modified, etc. They can run in isolation, they share nothing.
+
+These years I have been lucky enough to meet different teams and persons with different sensibilities around testing.
+The qualities mentioned before can be more or less important for you, but they are vital for a test suite that scales, and
+that is a concern that grows with the size of the system and the amount of logic.
+
+In production, `buildTravelOptionsForCustomer` is _impure_. It will not always return the same value for the same arguments, as we cannot always control what the database or external system will do. With the idea of the environment, we can provide substitute functions that would work as classic stubs, so when testing, the function is _pure_.
+Previously we had depicted the environment as a data structure that contained the database connection and the url, it was the natural way to extract dependencies bit by bit. Thanks to them, we could test this code making it consume testing versions of the database and service.
+
+This would certainly be useful and valuable, but the resulting tests would not adhere to the definition of unit test given before. They would touch the database and the external service with a network request. This makes these tests harder to design and maintain. [They are expensive](https://martinfowler.com/bliki/TestPyramid.html).
+
+The environment is also an abstraction. We get to decide how it gets presented at each layer of our application. If we organize our code in a way in which we can make disappear references to stateful components, we can enable three different modes of working:
+
+- **Production mode**: This is the real code that is used when the application is normally executed. The environment points to real dependencies, a real database, and a real service.
+- **Integration tests mode**: We can switch the dependencies and make them point to a staging database and service. These dependencies live in a different process and are stateful, but we have more control over them.
+- **Unit tests mode**: We can point the dependencies to in-memory functions. The setup is controlled in the tests. This enables isolated, unit tests, that run fast.
+
+For our example, one way to achieve this would be to make the map where we specify all the providers part of this environment. The map contains, keys to the providers and a function that takes the request and returns a promise.
+To be more specific, a test could look like this:  
+
+```
+test('It returns options from the different providers', async () => {
+  const environment = {
+    providers: {
+      'plane': getPlaneOptions,
+      'train': getTrainOptions
+    },
+    trainOptionsReader: (_request) => Promise.resolve([{ from: 'A', to: 'B', price: 1, company: 'Amtrak' }]),
+    planeOptionsReader: (_request) => Promise.resolve({
+      ok: true,
+      list: [
+        {src: 'A', dest: 'B', carrier: 'Midwest', ticket_price: 123},
+        {src: 'A', dest: 'B', carrier: 'Air France', ticket_price: 456}
+      ]
+    })
+  };
+
+  const result = await buildTravelOptionsForCustomer(environment, { ... });
+
+  expect(result.length).toBe(3);
+});
+```
+
+And the production mode could be configured similarly. This is an example with Express a popular web framework for Node:
+
+```
+app.get('/', (_, res) => {
+  const environment = {
+    providers: {
+      'plane': getPlaneOptions,
+      'train': getTrainOptions
+    },
+    trainOptionsReader: partialApply(provider.query, databaseConnection),
+    planeOptionsReader: partialApply(http.get, url)
+  }
+
+  const result = await buildTravelOptionsForCustomer(environment, { ... });
+
+  res.send(result);
+})
+
+```
+And the application code:
+
+```
+const getTrainOptions = async (environment, request) => {
+  const { trainOptionsReader } = environment;
+
+  const travelOptionsByTrain = await trainOptionsReader(request);
+
+  return {
+    options: travelOptionsByTrain.map(o => {
+      return { from: o.from, to: o.to, price: o.price, company: o.company }
+    })
+  };
+}
+
+const getPlaneOptions = async (environment, request) => {
+  const { planeOptionsReader } = environment;
+
+  const travelOptionsByPlane = await planeOptionsReader(request);
+
+  return {
+    sucess: travelOptionsByPlane.ok,
+    options: travelOptionsByPlane.list.map(l => {
+      return {
+        from: l.src,
+        to: l.dest,
+        carrier: l.carrier,
+        price: l.ticket_price
+      };
+    })
+  };
+}
+
+const getTravelOptions = (environment, request) => {
+  const { providers } = environment;
+
+  const promises = Object.values(providers).map(p => p(environment, request));
+
+  return Promise.all(promises).then(partialResults => {
+    const results = partialResults.map(o => o.options).flat();
+
+    if (results.length > 0) {
+      return results;
+    } else {
+      throw new NoOptionsError();
+    }
+  });
+}
+
+export const buildTravelOptionsForCustomer = async (environment, request) => {
+  logRequest(request);
+
+  const options = await getTravelOptions(environment, request);
+
+  return {
+    source: request.origin,
+    destination: request.destination,
+    options: options.sort((a, b) => a.price < b.price)
+  }
+}
+```
+
+# Big environments and coupling
+
+We are responsible for how we present the environment to our code, it’s an abstraction that we are responsible to shape. As code and features evolve over time, the size of the environment can grow too.
+After some point, an environment that is too big indicates a function or class that is too tightly coupled to the rest of the system, and therefore probably not focusing too much on just one thing. The environment abstraction makes this very clear, as we have data to make judgments like this in the public API of the subject.
+
+In OOP, "dependency injection" is a set of software design patterns that enable loosely coupled code. Part of the improvements this technique suggests are based on making dependencies more explicit, so this problem of “depending on too much” is already well known and understood.
+
+Let’s take a look at this example:  
+
+```
+(defn buy-item [{:env/keys [...
+                            retrieve-user-settings
+                            email-sender
+                            sms-sender
+                            ...]} purchase-request]
+
+  (check-stock! purchase-request)
+
+  (store-purchase! purchase-request)
+
+  (let [{:user/keys [communication-method]} (retrieve-user-settings)] (1)
+    (cond
+      (= communication-method :email) (email-sender purchase-request)
+      (= communication-method :sms) (sms-sender purchase-request))))
+```
+
+It quickly becomes apparent that the part where we dispatch a communication depending on the user settings (1) can be extracted. Now, at this level, the buy-item function, the software is less aware of the internal details needed to dispatch the communication and more loosely coupled.
+
+```
+(defn buy-item [{:env/keys [...
+                            notify-client
+                            ...]} purchase-request]
+
+  (check-stock! purchase-request)
+
+  (store-purchase! purchase-request)
+
+  (notify-client! …))
+```
