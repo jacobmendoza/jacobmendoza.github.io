@@ -259,19 +259,24 @@ To be more specific, a test could look like this:  
 
 ```
 test('It returns options from the different providers', async () => {
-  const environment = {
-    providers: {
-      'plane': getPlaneOptions,
-      'train': getTrainOptions
-    },
-    trainOptionsReader: (_request) => Promise.resolve([{ from: 'A', to: 'B', price: 1, company: 'Amtrak' }]),
+  const planeEnv = {
     planeOptionsReader: (_request) => Promise.resolve({
       ok: true,
       list: [
         {src: 'A', dest: 'B', carrier: 'Midwest', ticket_price: 123},
         {src: 'A', dest: 'B', carrier: 'Air France', ticket_price: 456}
-      ]
-    })
+      ]})
+  };
+
+  const trainEnv = {
+    trainOptionsReader: (_request) => Promise.resolve([{ from: 'A', to: 'B', price: 1, company: 'Amtrak' }])
+  };
+
+  const environment = {
+    providers: {
+      'plane': partialApply(getPlaneOptions, planeEnv),
+      'train': partialApply(getTrainOptions, trainEnv)
+    }    
   };
 
   const result = await buildTravelOptionsForCustomer(environment, { ... });
@@ -286,11 +291,9 @@ And the production mode could be configured similarly. This is an example with E
 app.get('/', (_, res) => {
   const environment = {
     providers: {
-      'plane': getPlaneOptions,
-      'train': getTrainOptions
-    },
-    trainOptionsReader: partialApply(provider.query, databaseConnection),
-    planeOptionsReader: partialApply(http.get, url)
+      'plane': partialApply(getPlaneOptions, { trainOptionsReader: partialApply(provider.query, databaseConnection) }),
+      'train': partialApply(getTrainOptions, { planeOptionsReader: partialApply(http.get, url) }
+    }
   }
 
   const result = await buildTravelOptionsForCustomer(environment, { ... });
@@ -335,7 +338,7 @@ const getPlaneOptions = async (environment, request) => {
 const getTravelOptions = (environment, request) => {
   const { providers } = environment;
 
-  const promises = Object.values(providers).map(p => p(environment, request));
+  const promises = Object.values(providers).map(p => p(request));
 
   return Promise.all(promises).then(partialResults => {
     const results = partialResults.map(o => o.options).flat();
