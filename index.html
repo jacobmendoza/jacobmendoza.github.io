@@ -2,9 +2,30 @@
 layout: landing
 ---
 
+<style>
+  @media (max-width: 600px) {
+    .description {
+      width: 60%;
+    }
+  }
+
+  .description {
+    padding: 1em 0em;
+    width: 100%;
+    max-width: 680px;
+    text-align: justify;
+  }
+</style>
+
 <div id="landingContainer">
   <h1>Hi, I'm Jacob</h1>
-  <h2>Software developer (Valencia, Spain, Remote)</h2>
+  <div class="description">
+    I am a <b>lead software developer</b> at <a href="https://digitalechecklisten.nl/" target="_blank">Digitale Checklisten</a>, where we explore how to create
+    the best <b>compliance and process management</b> tool with Ruby on Rails, Ember, Redux, React and Clojure.
+    Previously I worked at <a href="https://www.dell.com/" target="_blank">Dell Computers</a> building DSA, the tool for sales representatives
+    who keep track of equipment orders for clients, enterprise, government, and small/medium business,
+    as part of a major engineering effort that pursued the migration of several backend services created in the 80s (C#/.NET).
+  </div>
   <div id="menu">
     <div><a class="blog" href="blog.html">Blog</a></div>
     <div><a target="_blank" href="https://twitter.com/jacobmendoza">Twitter</a></div>
